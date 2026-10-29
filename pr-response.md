@@ -8,8 +8,9 @@
 **How I verified:** I searched the repo and found no remaining references to the old name, and all 4 tests passed.
 
 ## Comment 2 — Deduplication
-**What I did:**
-**How I verified:**
+**What I did:** I followed the pattern in `add_to_collection()` in `services/collection_service.py`, which checks for an existing `CollectionEntry` with the same `user_id` and `film_id` and, if one is found, raises `AlreadyInCollectionError` without saving anything, which the collection route returns as a 409 Conflict. I copied that into `add_to_watchlist()`: it now queries for an existing `WatchlistEntry` with the same `user_id` and `film_id`, raises a new `AlreadyInWatchlistError` before creating a duplicate, and the watchlist route catches it and returns 409.
+
+**How I verified:** Adding the same film twice returned 201 the first time and 409 the second, and all existing tests still passed.
 
 ## Comment 3 — Missing test
 **What I did:**
