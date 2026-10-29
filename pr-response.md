@@ -31,9 +31,11 @@
 **Engagement with reviewer's point:** I agree with the maintainer that the watchlist should match `get_collection()`, which already sorts by `date_added` descending, because two list endpoints in the same API returning different orders is a surprise for any client. Alphabetical order's real strength is finding a specific film in a long list, but that's a search or filter feature, not something the default order should give up recency for, and clients can still sort by title since every item includes it. I added `test_get_watchlist_returns_newest_first`, which mirrors the collection's sort test and fails under the old alphabetical order.
 
 ## Comment 6 — Rebase
-**What conflicted:**
-**How I resolved it:**
-**How I verified no conflict remains:**
+**What conflicted:** I rebased `feature/watchlist` onto `main`, which had landed `57ec3f9` ("refactor: migrate film IDs from integer to UUID"). The rebase stopped on my first commit (`9eafe68`) with one conflict in `models.py` on `WatchlistEntry.film_id`: `main` had changed it to `db.String(36)` to match the new UUID `Film.id`, while my branch still declared it `db.Integer` and had added `index=True`. Two lines in my watchlist code also still described integer IDs without conflicting: the `film_id (int)` docstring in `services/watchlist_service.py` and the `{ "film_id": <int> }` request body in `routes/watchlist/watchlist.py`.
+
+**How I resolved it:** I kept `main`'s `db.String(36)` type, since a foreign key has to match the type of `Film.id`, and kept my `index=True` because watchlist lookups filter on `film_id`, so the resolved line is `db.Column(db.String(36), db.ForeignKey("film.id"), nullable=False, index=True)`. I also updated the service docstring to `film_id (str): UUID of the film.` and the route body to `{ "film_id": "<uuid>" }`, staged the files, and ran `git rebase --continue`; the remaining six commits replayed with no further conflicts.
+
+**How I verified no conflict remains:** On the rebased tip I searched every `.py` file for leftover `<<<<<<<`/`=======`/`>>>>>>>` markers and found none, and searched the models, services, and routes for integer film-ID references (`db.Integer` foreign keys, `(int)`, `<int>`) and found none. `git diff main -- models.py` shows my only change to the model is the added `index=True`, so I didn't undo any of the refactor. The full test suite passed (6 tests), including the watchlist tests, which already use a UUID string as the nonexistent `film_id`.
 
 ## PR Description
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->
