@@ -24,9 +24,11 @@
 **Tradeoff acknowledged:** Defaulting to `public=False` follows privacy-by-default and protects users who don't expect their list to be visible; someone who adds a film they'd rather keep to themselves and later finds it public loses trust in the app in a way that's hard to win back. That risk is real in this PR, because users currently have no way to change visibility: no endpoint sets `public`, and `GET /watchlist/<user_id>` returns every entry regardless of the flag. So `public=True` is only the right default if a follow-up adds a per-entry toggle and filters private entries out of other users' views; if that can't ship soon, I'd switch the default to `False` until it does.
 
 ## Comment 5 — Sort order
-**My position:**
-**Reasoning:**
-**Engagement with reviewer's point:**
+**My position:** I switched `get_watchlist()` to sort by date added, newest first.
+
+**Reasoning:** A watchlist is a queue of intent, and the films a user added most recently are the ones they're most likely to act on next, so they belong at the top; alphabetical order buries a film added yesterday under everything that starts with "A".
+
+**Engagement with reviewer's point:** I agree with the maintainer that the watchlist should match `get_collection()`, which already sorts by `date_added` descending, because two list endpoints in the same API returning different orders is a surprise for any client. Alphabetical order's real strength is finding a specific film in a long list, but that's a search or filter feature, not something the default order should give up recency for, and clients can still sort by title since every item includes it. I added `test_get_watchlist_returns_newest_first`, which mirrors the collection's sort test and fails under the old alphabetical order.
 
 ## Comment 6 — Rebase
 **What conflicted:**
