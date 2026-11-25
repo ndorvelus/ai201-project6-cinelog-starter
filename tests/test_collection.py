@@ -7,7 +7,8 @@ before writing your own tests for the watchlist feature (see Comment 3).
 """
 
 import pytest
-from app import create_app, db
+from app import create_app
+from extensions import db
 from models import User, Film, CollectionEntry
 from services.collection_service import (
     add_to_collection,

@@ -6,7 +6,8 @@ Follows the fixture and assertion patterns in tests/test_collection.py.
 """
 
 import pytest
-from app import create_app, db
+from app import create_app
+from extensions import db
 from models import User, Film, WatchlistEntry
 from services.watchlist_service import (
     add_to_watchlist,

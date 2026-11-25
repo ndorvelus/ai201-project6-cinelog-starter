@@ -5,7 +5,8 @@ Populate the local SQLite database with a demo user and a few films.
 Run once after installing dependencies: python seed.py
 """
 
-from app import create_app, db
+from app import create_app
+from extensions import db
 from models import User, Film
 
 FILMS = [
