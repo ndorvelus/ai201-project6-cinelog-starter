@@ -55,6 +55,25 @@ def test_watchlist_unique_constraint_rejects_duplicate_rows(app, sample_user, sa
         db.session.rollback()
 
 
+def test_same_film_on_two_users_watchlists_is_allowed(app, sample_user, sample_film):
+    """
+    Deduplication is per user: a second user adding a film that's already on
+    someone else's watchlist must succeed, not raise AlreadyInWatchlistError.
+    """
+    with app.app_context():
+        from models import User
+
+        other = User(username="otheruser", email="other@example.com")
+        db.session.add(other)
+        db.session.commit()
+
+        add_to_watchlist(user_id=sample_user, film_id=sample_film)
+        entry = add_to_watchlist(user_id=other.id, film_id=sample_film)
+
+        assert entry.user_id == other.id
+        assert WatchlistEntry.query.filter_by(film_id=sample_film).count() == 2
+
+
 # ── Nonexistent film ─────────────────────────────────────────────────────────
 
 def test_add_to_watchlist_nonexistent_film_raises(app, sample_user):
