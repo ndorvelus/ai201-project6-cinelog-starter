@@ -10,8 +10,10 @@ from extensions import db
 from models import Film, WatchlistEntry
 from services.watchlist_service import (
     add_to_watchlist,
+    remove_from_watchlist,
     get_watchlist,
     AlreadyInWatchlistError,
+    NotInWatchlistError,
 )
 from services.errors import FilmNotFoundError
 
@@ -96,3 +98,44 @@ def test_get_watchlist_returns_newest_first(app, sample_user):
         # Blade Runner was added later, so it should come first
         assert titles[0] == "Blade Runner"
         assert titles[1] == "Alien"
+
+
+# ── remove_from_watchlist ────────────────────────────────────────────────────
+
+def test_remove_from_watchlist_deletes_entry(app, sample_user, sample_film):
+    """
+    Removing a film that is on the watchlist should delete its entry and
+    return True.
+    """
+    with app.app_context():
+        add_to_watchlist(user_id=sample_user, film_id=sample_film)
+
+        assert remove_from_watchlist(user_id=sample_user, film_id=sample_film) is True
+
+        in_db = WatchlistEntry.query.filter_by(
+            user_id=sample_user, film_id=sample_film
+        ).first()
+        assert in_db is None
+
+
+def test_remove_from_watchlist_not_present_raises(app, sample_user, sample_film):
+    """
+    Removing a film that isn't on the watchlist should raise
+    NotInWatchlistError rather than failing silently.
+    """
+    with app.app_context():
+        with pytest.raises(NotInWatchlistError):
+            remove_from_watchlist(user_id=sample_user, film_id=sample_film)
+
+
+def test_film_can_be_re_added_after_removal(app, sample_user, sample_film):
+    """
+    After a film is removed, adding it again should succeed: removal has to
+    actually free the (user_id, film_id) slot that deduplication checks.
+    """
+    with app.app_context():
+        add_to_watchlist(user_id=sample_user, film_id=sample_film)
+        remove_from_watchlist(user_id=sample_user, film_id=sample_film)
+
+        entry = add_to_watchlist(user_id=sample_user, film_id=sample_film)
+        assert entry.film_id == sample_film
