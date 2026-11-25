@@ -71,6 +71,23 @@ def test_add_to_watchlist_duplicate_raises(app, sample_user, sample_film):
         assert count == 1
 
 
+def test_watchlist_unique_constraint_rejects_duplicate_rows(app, sample_user, sample_film):
+    """
+    The database itself should reject a second (user_id, film_id) row, so a
+    duplicate can't slip in if two requests pass the service check at once.
+    """
+    with app.app_context():
+        from sqlalchemy.exc import IntegrityError
+
+        db.session.add(WatchlistEntry(user_id=sample_user, film_id=sample_film))
+        db.session.commit()
+
+        db.session.add(WatchlistEntry(user_id=sample_user, film_id=sample_film))
+        with pytest.raises(IntegrityError):
+            db.session.commit()
+        db.session.rollback()
+
+
 # ── Nonexistent film ─────────────────────────────────────────────────────────
 
 def test_add_to_watchlist_nonexistent_film_raises(app, sample_user):
