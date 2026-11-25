@@ -139,3 +139,47 @@ def test_film_can_be_re_added_after_removal(app, sample_user, sample_film):
 
         entry = add_to_watchlist(user_id=sample_user, film_id=sample_film)
         assert entry.film_id == sample_film
+
+
+# ── Visibility ───────────────────────────────────────────────────────────────
+
+def test_add_to_watchlist_defaults_to_public(app, sample_user, sample_film):
+    """
+    With no public argument, a new entry should be public (the documented
+    default from the Comment 4 decision).
+    """
+    with app.app_context():
+        entry = add_to_watchlist(user_id=sample_user, film_id=sample_film)
+        assert entry.public is True
+
+
+def test_add_to_watchlist_can_be_private(app, sample_user, sample_film):
+    """
+    Passing public=False should store the entry as private.
+    """
+    with app.app_context():
+        add_to_watchlist(user_id=sample_user, film_id=sample_film, public=False)
+
+        in_db = WatchlistEntry.query.filter_by(
+            user_id=sample_user, film_id=sample_film
+        ).first()
+        assert in_db.public is False
+
+
+def test_add_endpoint_accepts_public_flag(client, sample_user, sample_film):
+    """
+    POST /watchlist/<user_id>/add should pass "public": false through to the
+    stored entry and reject a non-boolean value with 400.
+    """
+    resp = client.post(
+        f"/watchlist/{sample_user}/add",
+        json={"film_id": sample_film, "public": False},
+    )
+    assert resp.status_code == 201
+    assert resp.get_json()["public"] is False
+
+    resp = client.post(
+        f"/watchlist/{sample_user}/add",
+        json={"film_id": sample_film, "public": "no"},
+    )
+    assert resp.status_code == 400

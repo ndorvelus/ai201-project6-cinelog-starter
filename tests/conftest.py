@@ -27,6 +27,12 @@ def app():
 
 
 @pytest.fixture
+def client(app):
+    """A Flask test client for exercising the HTTP endpoints."""
+    return app.test_client()
+
+
+@pytest.fixture
 def sample_user(app):
     """A user to use in tests."""
     with app.app_context():
