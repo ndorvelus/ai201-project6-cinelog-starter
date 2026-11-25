@@ -6,49 +6,14 @@ Follows the fixture and assertion patterns in tests/test_collection.py.
 """
 
 import pytest
-from app import create_app
 from extensions import db
-from models import User, Film, WatchlistEntry
+from models import Film, WatchlistEntry
 from services.watchlist_service import (
     add_to_watchlist,
     get_watchlist,
     AlreadyInWatchlistError,
 )
 from services.errors import FilmNotFoundError
-
-
-@pytest.fixture
-def app():
-    """Create an isolated test app with an in-memory database."""
-    app = create_app(config={
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-    })
-    with app.app_context():
-        db.create_all()
-        yield app
-        db.session.remove()
-        db.drop_all()
-
-
-@pytest.fixture
-def sample_user(app):
-    """A user to use in tests."""
-    with app.app_context():
-        user = User(username="testuser", email="test@example.com")
-        db.session.add(user)
-        db.session.commit()
-        return user.id
-
-
-@pytest.fixture
-def sample_film(app):
-    """A film to use in tests."""
-    with app.app_context():
-        film = Film(title="Paddington 2", year=2017, genre="Comedy")
-        db.session.add(film)
-        db.session.commit()
-        return film.id
 
 
 # ── Deduplication ────────────────────────────────────────────────────────────
