@@ -10,7 +10,7 @@ from services.watchlist_service import (
     get_watchlist,
     AlreadyInWatchlistError,
 )
-from services.collection_service import FilmNotFoundError
+from services.errors import FilmNotFoundError
 
 watchlist_bp = Blueprint("watchlist", __name__)
 

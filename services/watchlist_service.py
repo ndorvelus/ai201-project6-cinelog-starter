@@ -6,7 +6,7 @@ Business logic for the watchlist feature.
 
 from app import db
 from models import Film, WatchlistEntry
-from services.collection_service import FilmNotFoundError
+from services.errors import FilmNotFoundError
 
 
 class AlreadyInWatchlistError(Exception):

@@ -7,11 +7,7 @@ All functions follow the project's verb_to_noun naming convention.
 
 from app import db
 from models import Film, CollectionEntry
-
-
-class FilmNotFoundError(Exception):
-    """Raised when a film_id does not exist in the database."""
-    pass
+from services.errors import FilmNotFoundError  # noqa: F401  (re-exported for existing callers)
 
 
 class AlreadyInCollectionError(Exception):
