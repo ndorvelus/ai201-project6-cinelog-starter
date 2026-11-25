@@ -5,13 +5,9 @@ Business logic for managing a user's film collection (films they've already watc
 All functions follow the project's verb_to_noun naming convention.
 """
 
-from app import db
+from extensions import db
 from models import Film, CollectionEntry
-
-
-class FilmNotFoundError(Exception):
-    """Raised when a film_id does not exist in the database."""
-    pass
+from services.errors import FilmNotFoundError  # noqa: F401  (re-exported for existing callers)
 
 
 class AlreadyInCollectionError(Exception):
@@ -40,7 +36,7 @@ def add_to_collection(user_id, film_id, rating=None):
         FilmNotFoundError: If film_id does not exist.
         AlreadyInCollectionError: If the film is already in the user's collection.
     """
-    film = Film.query.get(film_id)
+    film = db.session.get(Film, film_id)
     if film is None:
         raise FilmNotFoundError(f"No film found with id '{film_id}'")
 
